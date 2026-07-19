@@ -7,8 +7,8 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer)
-    task = Column(String)
-    description = Column(String)
+    task = Column(String(100))
+    description = Column(String(400))
     deadline = Column(DateTime)
     priority = Column(String)
     status = Column(Boolean, default=False)

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Task</title>
+
+    <link rel="stylesheet" href="/static/edit.css">
+</head>
+
+<body>
+
+    <div class="edit-card">
+
+        <h1>Edit Task</h1>
+        <p class="subtitle">Update Task Details</p>
+        {% if error %}
+
+        <div class="error-box">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+        <form action="/update" method="post" class="edit-form">
+
+            <input type="hidden" name="task_id" value="{{ task.id }}">
+
+            <label>Task</label>
+
+            <input type="text" name="task" value="{{ task.task }}" maxlength="50" required>
+
+            <label>Description</label>
+
+            <textarea name="description" maxlength="200">{{ task.description }}</textarea>
+
+            <label>Deadline</label>
+
+            <input type="text" name="deadline" value="{{ task.deadline.strftime('%Y-%m-%d %H:%M') }}"
+                placeholder="2026-07-18 15:30" required>
+
+            <small>
+                Format: YYYY-MM-DD HH:MM
+            </small>
+
+            <label>Priority</label>
+
+            <select name="priority">
+
+                <option value="Low" {% if task.priority=="Low" %}selected{% endif %}>
+                    Low
+                </option>
+
+                <option value="Medium" {% if task.priority=="Medium" %}selected{% endif %}>
+                    Medium
+                </option>
+
+                <option value="High" {% if task.priority=="High" %}selected{% endif %}>
+                    High
+                </option>
+
+            </select>
+
+            <div class="button-row">
+
+                <a href="/tasks" class="cancel-btn">
+                    Cancel
+                </a>
+
+                <button type="submit">
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>

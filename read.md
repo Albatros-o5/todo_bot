@@ -88,7 +88,7 @@ todo_list_bot/
 
 ## 👨‍💻 Author
 
-Muhammadjon Yoriyev
+Muhammadjon
 
 GitHub:
 https://github.com/Albatros-o5

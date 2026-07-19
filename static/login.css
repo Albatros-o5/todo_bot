@@ -1,0 +1,312 @@
+/* --
+   RESET
+--*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* --
+   BODY
+--- */
+
+body {
+
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #eef3fb;
+
+    padding: 20px;
+
+}
+
+/* ---
+   LOGO
+--- */
+
+.logo-image {
+
+    position: fixed;
+
+    top: 25px;
+    left: 25px;
+
+    width: 140px;
+    height: 140px;
+
+    border-radius: 28px;
+
+    object-fit: cover;
+
+    transition: .3s;
+}
+
+.logo-image:hover {
+
+    transform: scale(1.05);
+
+}
+
+/* ---
+   CARD
+--- */
+
+.login-card {
+
+    width: 430px;
+    max-width: 100%;
+
+    background: white;
+
+    padding: 45px;
+
+    border-radius: 24px;
+
+    box-shadow: 0 20px 45px rgba(0, 0, 0, .12);
+
+}
+
+/* ---
+   TITLE
+--- */
+
+.login-card h1 {
+
+    text-align: center;
+
+    font-size: 54px;
+
+    margin-bottom: 20px;
+
+    background: linear-gradient(90deg,
+            #ff512f,
+            #dd2476,
+            #7b2ff7);
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+}
+
+/* ---
+   DESCRIPTION
+--- */
+
+.login-card p {
+
+    text-align: center;
+
+    color: #666;
+
+    font-size: 21px;
+
+    margin-bottom: 30px;
+
+    line-height: 1.5;
+
+}
+
+/* ---
+   FORM
+--- */
+
+.login-form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+.login-form input {
+
+    width: 100%;
+
+    padding: 18px;
+
+    border: 1px solid #d8dfea;
+
+    border-radius: 18px;
+
+    outline: none;
+
+    font-size: 20px;
+
+    transition: .3s;
+
+}
+
+.login-form input:focus {
+
+    border-color: #7b2ff7;
+
+    box-shadow: 0 0 0 5px rgba(123, 47, 247, .12);
+
+}
+
+/* ---
+   BUTTON
+--- */
+
+.login-form button {
+
+    width: 100%;
+
+    padding: 18px;
+
+    border: none;
+
+    border-radius: 18px;
+
+    color: white;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    background: linear-gradient(90deg,
+            #ff512f,
+            #dd2476,
+            #7b2ff7,
+            #00c6ff);
+
+    background-size: 250%;
+
+    transition: .45s;
+
+}
+
+.login-form button:hover {
+
+    background-position: right;
+
+    transform: translateY(-3px);
+
+    box-shadow: 0 12px 25px rgba(0, 0, 0, .2);
+
+}
+
+.login-form button:active {
+
+    transform: scale(.98);
+
+}
+
+/* ---
+   TABLET
+---*/
+
+@media(max-width:768px) {
+
+    .login-card {
+
+        width: 100%;
+
+        padding: 35px 25px;
+
+    }
+
+    .login-card h1 {
+
+        font-size: 42px;
+
+    }
+
+    .login-card p {
+
+        font-size: 18px;
+
+    }
+
+    .login-form input,
+    .login-form button {
+
+        font-size: 18px;
+
+        padding: 16px;
+
+    }
+
+    .logo-image {
+
+        width: 90px;
+        height: 90px;
+
+        top: 15px;
+        left: 15px;
+
+    }
+
+}
+
+/* --
+   PHONE
+--- */
+
+@media(max-width:480px) {
+
+    body {
+
+        padding: 15px;
+
+        align-items: center;
+
+    }
+
+    .login-card {
+
+        width: 100%;
+
+        padding: 28px 20px;
+
+        margin-top: 60px;
+
+    }
+
+    .login-card h1 {
+
+        font-size: 36px;
+
+    }
+
+    .login-card p {
+
+        font-size: 16px;
+
+    }
+
+    .login-form input,
+    .login-form button {
+
+        font-size: 16px;
+
+        padding: 15px;
+
+    }
+
+    /* --Telefon logo size-- */
+
+    .logo-image {
+
+        width: 70px;
+        height: 70px;
+
+        top: 10px;
+        left: 10px;
+
+        border-radius: 18px;
+
+    }
+
+}

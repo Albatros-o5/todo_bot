@@ -1,0 +1,348 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+
+    background: linear-gradient(135deg, #eef2f7 0%, #e3e9f5 100%);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    min-height: 100vh;
+
+    padding: 40px 20px;
+
+}
+
+
+
+.edit-card {
+
+    width: 650px;
+    max-width: 100%;
+
+    background: #ffffff;
+
+    padding: 40px;
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 15px 35px rgba(0, 0, 0, .08),
+        0 5px 10px rgba(0, 0, 0, .04);
+
+}
+
+
+
+.edit-card h1 {
+
+    color: #2563eb;
+
+    font-size: 42px;
+
+    margin-bottom: 8px;
+
+}
+
+.edit-card .subtitle {
+
+    color: #6b7280;
+    font-size: 15px;
+    margin-bottom: 30px;
+
+}
+
+
+.edit-form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+.edit-form label {
+
+    font-weight: 600;
+
+    color: #374151;
+
+    margin-bottom: -10px;
+    font-size: 14px;
+
+}
+
+
+
+.edit-form input,
+.edit-form textarea,
+.edit-form select {
+
+    width: 100%;
+
+    padding: 15px 18px;
+
+    font-size: 16px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 14px;
+
+    outline: none;
+
+    transition: .25s;
+
+    background: #fafbfc;
+
+}
+
+
+
+.edit-form textarea {
+
+    min-height: 130px;
+
+    resize: vertical;
+    line-height: 1.5;
+
+}
+
+
+
+.edit-form input:focus,
+.edit-form textarea:focus,
+.edit-form select:focus {
+
+    border-color: #2563eb;
+    background: white;
+
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .15);
+
+}
+
+
+
+.edit-form input[type=datetime-local] {
+
+    cursor: pointer;
+
+}
+
+
+
+.edit-form select {
+
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 18px;
+    padding-right: 44px;
+
+}
+
+
+
+.button-row {
+
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+
+}
+
+
+
+.edit-form button,
+.cancel-btn {
+
+    padding: 16px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    font-size: 17px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+    flex: 1;
+
+    text-align: center;
+    text-decoration: none;
+
+}
+
+.edit-form button {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+.edit-form button:hover {
+
+    background: #1d4ed8;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 10px 25px rgba(37, 99, 235, .25);
+
+}
+
+.edit-form button:active {
+
+    transform: scale(.98);
+
+}
+
+.cancel-btn {
+
+    background: #f3f4f6;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.cancel-btn:hover {
+
+    background: #e5e7eb;
+    transform: translateY(-2px);
+
+}
+
+
+
+@media(max-width:700px) {
+
+    body {
+
+        padding: 0;
+        align-items: flex-start;
+
+    }
+
+    .edit-card {
+
+        width: 100%;
+        min-height: 100vh;
+
+        padding: 28px 22px;
+
+        border-radius: 0;
+
+        box-shadow: none;
+
+    }
+
+    .edit-card h1 {
+
+        font-size: 30px;
+
+    }
+
+    .edit-card .subtitle {
+
+        margin-bottom: 24px;
+        font-size: 14px;
+
+    }
+
+    .edit-form input,
+    .edit-form textarea,
+    .edit-form select {
+
+        padding: 13px 16px;
+        font-size: 15px;
+
+    }
+
+    .button-row {
+
+        flex-direction: column-reverse;
+
+    }
+
+}
+
+.error-box {
+
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    background: #fff5f5;
+
+    border: 1px solid #fecaca;
+    border-left: 6px solid #ef4444;
+
+    color: #991b1b;
+
+    padding: 18px 20px;
+
+    margin-bottom: 28px;
+
+    border-radius: 14px;
+
+    font-size: 15px;
+    line-height: 1.6;
+    font-weight: 500;
+
+    box-shadow: 0 10px 24px rgba(239, 68, 68, .08);
+
+    animation: fadeIn .25s ease;
+}
+
+.error-box::before {
+
+    content: "⚠";
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #ef4444;
+    color: #fff;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}

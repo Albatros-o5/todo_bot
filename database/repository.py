@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from database.db import get_session
 from database.models import Task
+import secrets
 
 
 class TaskRepository:
@@ -70,3 +71,60 @@ class TaskRepository:
         tasks = self.session.execute(select(Task).where(
             Task.user_id == user_id, Task.status == False)).scalars().all()
         return tasks
+
+    def show_all_tasks(self):
+        return self.session.execute(
+            select(Task)
+        ).scalars().all()
+
+    def undone_task(self, task_id, user_id):
+        task = self.get_task(task_id, user_id)
+
+        if task:
+            task.status = False
+            self.session.commit()
+            return True
+
+        return False
+
+# LOGIN TOKEN
+
+
+    def create_login_token(self, user_id):
+
+        token = secrets.token_urlsafe(32)
+
+        login = LoginToken(
+            token=token,
+            user_id=user_id
+        )
+
+        self.session.add(login)
+        self.session.commit()
+
+        return token
+
+    def get_user_by_token(self, token):
+
+        login = self.session.execute(
+            select(LoginToken).where(
+                LoginToken.token == token
+            )
+        ).scalar()
+
+        if login:
+            return login.user_id
+
+        return None
+
+    def delete_token(self, token):
+
+        login = self.session.execute(
+            select(LoginToken).where(
+                LoginToken.token == token
+            )
+        ).scalar()
+
+        if login:
+            self.session.delete(login)
+            self.session.commit()

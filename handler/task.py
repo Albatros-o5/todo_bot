@@ -43,7 +43,16 @@ async def cancel(message: Message, state: FSMContext):
 
 @router.message(Form.task)
 async def add_task(message: Message, state: FSMContext):
-    task_name = message.text
+    task_name = message.text.strip()
+
+    if not task_name:
+        await message.answer("Task name cannot be empty.")
+        return
+
+    if len(task_name) > 100:
+        await message.answer("Task name must be less than 100 characters.")
+        return
+
     await state.update_data(task=task_name)
     await state.set_state(Form.description)
     await message.answer("Please enter the task description:")
@@ -51,9 +60,19 @@ async def add_task(message: Message, state: FSMContext):
 
 @router.message(Form.description)
 async def add_description(message: Message, state: FSMContext):
-    description = message.text
+    description = message.text.strip()
+
+    if not description:
+        await message.answer("Description cannot be empty.")
+        return
+
+    if len(description) > 400:
+        await message.answer("Description must be less than 400 characters.")
+        return
+
     await state.update_data(description=description)
     await state.set_state(Form.deadline)
+
     await message.answer(
         "📅 Enter deadline.\n\n"
         "Format:\n"
@@ -119,7 +138,7 @@ async def add_priority(callback: CallbackQuery, state: FSMContext):
 📅 Deadline: {data['deadline']}
 🔥 Priority: {data['priority']}
 
-✅ Task muvaffaqiyatli saqlandi.
+✅ Task saved.
 """
     )
 
@@ -261,7 +280,15 @@ async def update_selected_task(callback: CallbackQuery, state: FSMContext):
 
 @router.message(UpdateForm.task)
 async def update_task_name(message: Message, state: FSMContext):
-    task_name = message.text
+    task_name = message.text.strip()
+
+    if not task_name:
+        await message.answer("Task name cannot be empty.")
+        return
+
+    if len(task_name) > 100:
+        await message.answer("Task name must be less than 100 characters.")
+        return
     await state.update_data(task=task_name)
     await state.set_state(UpdateForm.description)
     await message.answer("Please enter the new task description:")
@@ -269,8 +296,16 @@ async def update_task_name(message: Message, state: FSMContext):
 
 @router.message(UpdateForm.description)
 async def update_task_description(message: Message, state: FSMContext):
-
     description = message.text
+    description = message.text.strip()
+
+    if not description:
+        await message.answer("Description cannot be empty.")
+        return
+
+    if len(description) > 400:
+        await message.answer("Description must be less than 400 characters.")
+        return
     await state.update_data(description=description)
     await state.set_state(UpdateForm.deadline)
     await message.answer(
@@ -330,9 +365,17 @@ async def update_task_priority(callback: CallbackQuery, state: FSMContext):
         deadline=data["deadline"],
         priority=data["priority"]
     )
-
+    await state.clear()
     await callback.message.answer(
-        f"""📌 Updated Task: {data['task']}""")
+        f"""
+✅ Task updated successfully!
+
+📌 {data['task']}
+📝 {data['description']}
+📅 {data['deadline']}
+🔥 {data['priority']}
+"""
+    )
 
 
 @router.message(Command("drop"))

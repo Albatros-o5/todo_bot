@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Todo List Login</title>
+
+    <link rel="stylesheet" href="/static/login.css">
+</head>
+
+<body>
+
+    <!-- Logo -->
+    <img src="/static/image/image1.png" alt="Logo" class="logo-image">
+
+    <!-- Login Card -->
+    <div class="login-card">
+
+        <h1>Welcome</h1>
+
+        <p>Login using your Telegram User ID</p>
+
+        <form action="/login" method="post" class="login-form">
+
+            <input type="number" name="user_id" placeholder="Telegram User ID" required>
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>

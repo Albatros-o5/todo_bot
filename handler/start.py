@@ -1,34 +1,102 @@
+from aiogram.types import WebAppInfo
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import (
+    Message,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    CallbackQuery,
+    WebAppInfo
+)
 from aiogram.filters import Command
 
 from keyboard.reply_keyboard import reply_keyboard
 
+import asyncio
 
 router = Router()
+
+WEBAPP_URL = "https://abc123.ngrok-free.app"
+
+start_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🌐 Dashboard",
+                web_app=WebAppInfo(url=WEBAPP_URL)
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🆔 My User ID",
+                callback_data="my_id"
+            )
+        ]
+    ]
+)
 
 
 @router.message(Command("start"))
 async def start_command(message: Message):
-    await message.answer(
-        "👋 Welcome!\n\n"
 
-        "I'm Todo List Bot 🦤\n"
+    await message.answer(
+        "👋 <b>Welcome!</b>\n\n"
+
+        "🦤 <b>Todo List Bot</b>\n\n"
+
         "Your personal assistant for organizing daily tasks.\n\n"
 
         "📌 Plan your work\n"
         "⏰ Never miss a deadline\n"
         "🔥 Set task priorities\n"
-        "📈 Monitor your progress\n\n"
+        "📈 Track your progress\n\n"
 
-        "Choose an option from the keyboard below or type /help to get started.\n\n"
+        "🌐 You can also manage your tasks using the Web Dashboard.\n\n"
 
-        "Stay focused. Stay productive.🚀",
+        "Choose an option below.",
+        parse_mode="HTML",
         reply_markup=reply_keyboard()
     )
+
+    await message.answer(
+        "⚡ Quick Actions",
+        reply_markup=start_inline
+    )
+
+
+@router.callback_query(F.data == "my_id")
+async def my_id(callback: CallbackQuery):
+
+    msg = await callback.message.answer(
+        f"🆔 <b>Your User ID</b>\n\n"
+        f"<code>{callback.from_user.id}</code>\n\n"
+        "⏳ This message will disappear in 30 seconds.",
+        parse_mode="HTML"
+    )
+
+    await callback.answer()
+
+    await asyncio.sleep(30)
+
+    try:
+        await msg.delete()
+    except:
+        pass
 
 
 @router.message(Command("about"))
 @router.message(F.text == "ℹ️ About")
 async def about_command(message: Message):
-    await message.answer("🦤 Todo List Bot\n\nManage your daily tasks with ease. Create, update, complete, and organize your to-do list while tracking deadlines and priorities in one place.\n\nTech Stack: Python • Aiogram 3 • SQLAlchemy • SQLite")
+
+    await message.answer(
+        "🦤 <b>Todo List Bot</b>\n\n"
+
+        "Manage your daily tasks with ease.\n\n"
+
+        "✔ Create tasks\n"
+        "✔ Edit tasks\n"
+        "✔ Delete tasks\n"
+        "✔ Set priorities\n"
+        "✔ Track deadlines\n"
+        "✔ Access the Web Dashboard\n\n",
+        parse_mode="HTML"
+    )
