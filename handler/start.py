@@ -14,7 +14,9 @@ from keyboard.reply_keyboard import reply_keyboard
 import asyncio
 
 router = Router()
-WEBAPP_URL = "https://todobot-production-0e69.up.railway.app"
+WEBAPP_URL = "https://todobot-production-ee27.up.railway.app"
+
+print("WEBAPP_URL =", repr(WEBAPP_URL))
 start_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -98,3 +100,5 @@ async def about_command(message: Message):
         "✔ Access the Web Dashboard\n\n",
         parse_mode="HTML"
     )
+
+print(repr(WEBAPP_URL))

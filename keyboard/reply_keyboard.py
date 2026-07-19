@@ -4,6 +4,8 @@ from aiogram.types import (
     WebAppInfo
 )
 
+WEBAPP_URL = "https://todobot-production-ee27.up.railway.app"
+
 
 def reply_keyboard():
 
@@ -15,7 +17,7 @@ def reply_keyboard():
                 KeyboardButton(
                     text="🌐 Dashboard",
                     web_app=WebAppInfo(
-                        url="https://YOUR_DOMAIN.com"
+                        url=WEBAPP_URL
                     )
                 )
             ],
