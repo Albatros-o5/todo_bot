@@ -20,7 +20,7 @@ app.mount(
 db = TaskRepository()
 
 
-# HOME
+
 
 
 @app.get("/")
@@ -41,7 +41,7 @@ async def home(request: Request):
     )
 
 
-# LOGIN
+
 
 
 @app.post("/login")
@@ -63,7 +63,6 @@ async def login(
     return response
 
 
-# TASKS PAGE
 
 
 @app.get("/tasks")
@@ -88,9 +87,6 @@ async def tasks_page(request: Request):
         }
     )
 
-# ==========================
-# ADD TASK
-# ==========================
 
 
 @app.post("/add")
@@ -110,7 +106,7 @@ async def add_task(
             status_code=303
         )
 
-    # DEADLINE TEKSHIRISH
+
 
     try:
 
@@ -146,7 +142,7 @@ async def add_task(
             }
         )
 
-    # DATABASEGA SAQLASH
+
 
     db.add_task(
         user_id=int(user_id),
@@ -162,7 +158,6 @@ async def add_task(
     )
 
 
-# DELETE TASK
 
 
 @app.post("/delete")
@@ -190,7 +185,7 @@ async def delete_task(
     )
 
 
-# DONE TASK
+
 
 
 @app.post("/done")
@@ -217,7 +212,7 @@ async def done_task(
         status_code=303
     )
 
-# UNDONE TASK
+
 
 
 @app.post("/undone")
@@ -273,7 +268,7 @@ async def edit(
         }
     )
 
-# UPDATE TASK
+
 
 
 @app.post("/update")
@@ -302,7 +297,7 @@ async def update_task(
         user_id=int(user_id)
     )
 
-    # TASK LENGTH
+
 
     if len(task) < 3:
 
@@ -316,7 +311,6 @@ async def update_task(
             }
         )
 
-    # DESCRIPTION LENGTH
 
     if len(description) > 200:
 
@@ -330,7 +324,6 @@ async def update_task(
             }
         )
 
-    # PRIORITY
 
     if priority not in ["Low", "Medium", "High"]:
 
@@ -344,7 +337,6 @@ async def update_task(
             }
         )
 
-    # DEADLINE FORMAT
 
     try:
 
@@ -365,7 +357,7 @@ async def update_task(
             }
         )
 
-    # DEADLINE CHECK
+
 
     if deadline < datetime.now():
 
@@ -379,7 +371,6 @@ async def update_task(
             }
         )
 
-    # UPDATE DATABASE
 
     db.update_task(
         task_id=task_id,
