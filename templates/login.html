@@ -4,84 +4,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Todo List Login</title>
-
+    <title>Todo List</title>
     <link rel="stylesheet" href="/static/login.css">
-
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
 <body>
 
-    <!-- Logo -->
     <img src="/static/image/image1.png" alt="Logo" class="logo-image">
 
     <div class="login-card">
-
         <h1>Welcome</h1>
-
         <p id="status">Connecting to Telegram...</p>
-
     </div>
 
     <script>
-
         const tg = window.Telegram.WebApp;
-
         tg.ready();
         tg.expand();
 
-        console.log("Telegram =", tg);
-        console.log("initData =", tg.initData);
-        console.log("initDataUnsafe =", tg.initDataUnsafe);
-
-        // initData kelmagan bo'lsa
         if (!tg.initData || tg.initData.length === 0) {
-
-            document.getElementById("status").innerHTML =
-                "❌ Telegram WebApp initData not found.";
-
-            alert("initData is EMPTY");
-
+            document.getElementById("status").textContent = "Please open this app inside Telegram.";
         } else {
-
-            document.getElementById("status").innerHTML =
-                "✅ Telegram connected";
+            document.getElementById("status").textContent = "Logging in...";
 
             fetch("/auth", {
-
                 method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    initData: tg.initData
-                })
-
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ init_data: tg.initData })
             })
-
-                .then(response => response.json())
-
+                .then(res => res.json())
                 .then(data => {
-
-                    console.log(data);
-
-                    alert("Authorization request sent");
-
+                    if (data.ok) {
+                        window.location.href = "/tasks";
+                    } else {
+                        document.getElementById("status").textContent = "Error: " + data.detail;
+                    }
                 })
-
-                .catch(error => {
-
-                    console.error(error);
-
+                .catch(() => {
+                    document.getElementById("status").textContent = "Connection error.";
                 });
-
         }
-
     </script>
 
 </body>
