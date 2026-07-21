@@ -108,8 +108,9 @@ async def auth(body: dict = Body(...)):
             {"ok": False, "detail": str(e)},
             status_code=401
         )
-
     telegram_id = tg_user["id"]
+
+    print("AUTH USER:", telegram_id)
 
     response = JSONResponse({"ok": True})
 
@@ -125,17 +126,21 @@ async def auth(body: dict = Body(...)):
 
 
 @app.get("/tasks")
-async def tasks_page(request: Request, uid: int = None):
+async def tasks_page(request: Request):
 
-    user_id = request.cookies.get("user_id") or uid
+    print("==========")
+    print("COOKIE:", request.cookies)
+
+    user_id = request.cookies.get("user_id")
+
+    print("USER_ID:", user_id)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse("/", status_code=303)
 
     tasks = db.show_tasks(int(user_id))
+
+    print("TASK COUNT:", len(tasks))
 
     return templates.TemplateResponse(
         request=request,
