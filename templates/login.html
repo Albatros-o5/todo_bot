@@ -39,13 +39,16 @@
         const tg = window.Telegram.WebApp;
 
         tg.ready();
-        tg.expand();
 
-        console.log("Telegram Object:", tg);
-        console.log("InitData:", tg.initData);
-        console.log("InitDataUnsafe:", tg.initDataUnsafe);
-
-        alert("InitData = " + tg.initData);
+        fetch("/auth", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(tg.initDataUnsafe)
+        })
+            .then(r => r.json())
+            .then(console.log)
     </script>
 </body>
 

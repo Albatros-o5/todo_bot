@@ -7,6 +7,8 @@ from datetime import datetime
 
 from database.repository import TaskRepository
 
+from fastapi import Body
+
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
@@ -18,9 +20,6 @@ app.mount(
 )
 
 db = TaskRepository()
-
-
-
 
 
 @app.get("/")
@@ -41,28 +40,12 @@ async def home(request: Request):
     )
 
 
+@app.post("/auth")
+async def auth(data: dict = Body(...)):
 
+    print(data)
 
-
-@app.post("/login")
-async def login(
-    user_id: int = Form(...)
-):
-
-    response = RedirectResponse(
-        url="/tasks",
-        status_code=303
-    )
-
-    response.set_cookie(
-        key="user_id",
-        value=str(user_id),
-        max_age=60 * 60 * 24 * 30
-    )
-
-    return response
-
-
+    return {"ok": True}
 
 
 @app.get("/tasks")
@@ -88,7 +71,6 @@ async def tasks_page(request: Request):
     )
 
 
-
 @app.post("/add")
 async def add_task(
     request: Request,
@@ -105,8 +87,6 @@ async def add_task(
             url="/",
             status_code=303
         )
-
-
 
     try:
 
@@ -142,8 +122,6 @@ async def add_task(
             }
         )
 
-
-
     db.add_task(
         user_id=int(user_id),
         task=task,
@@ -156,8 +134,6 @@ async def add_task(
         url="/tasks",
         status_code=303
     )
-
-
 
 
 @app.post("/delete")
@@ -185,9 +161,6 @@ async def delete_task(
     )
 
 
-
-
-
 @app.post("/done")
 async def done_task(
     request: Request,
@@ -211,8 +184,6 @@ async def done_task(
         url="/tasks",
         status_code=303
     )
-
-
 
 
 @app.post("/undone")
@@ -269,8 +240,6 @@ async def edit(
     )
 
 
-
-
 @app.post("/update")
 async def update_task(
     request: Request,
@@ -297,8 +266,6 @@ async def update_task(
         user_id=int(user_id)
     )
 
-
-
     if len(task) < 3:
 
         return templates.TemplateResponse(
@@ -310,7 +277,6 @@ async def update_task(
                 "error": "Task must contain at least 3 characters."
             }
         )
-
 
     if len(description) > 200:
 
@@ -324,7 +290,6 @@ async def update_task(
             }
         )
 
-
     if priority not in ["Low", "Medium", "High"]:
 
         return templates.TemplateResponse(
@@ -336,7 +301,6 @@ async def update_task(
                 "error": "Invalid priority selected."
             }
         )
-
 
     try:
 
@@ -357,8 +321,6 @@ async def update_task(
             }
         )
 
-
-
     if deadline < datetime.now():
 
         return templates.TemplateResponse(
@@ -370,7 +332,6 @@ async def update_task(
                 "error": "The deadline cannot be in the past. Please select a future date and time."
             }
         )
-
 
     db.update_task(
         task_id=task_id,
