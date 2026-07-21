@@ -13,7 +13,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from database.repository import TaskRepository
-
+from aiogram.types import MenuButtonWebApp, WebAppInfo
 
 app = FastAPI()
 
@@ -70,6 +70,14 @@ def verify_init_data(init_data: str) -> dict:
         raise ValueError("User ma'lumoti topilmadi")
 
     return json.loads(user_json)
+
+
+await bot.set_chat_menu_button(
+    menu_button=MenuButtonWebApp(
+        text="📋 Dashboard",
+        web_app=WebAppInfo(url=WEBAPP_URL)
+    )
+)
 
 
 @app.get("/")

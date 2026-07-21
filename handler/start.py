@@ -24,12 +24,6 @@ start_inline = InlineKeyboardMarkup(
                 text="🌐 Dashboard",
                 web_app=WebAppInfo(url=WEBAPP_URL)
             )
-        ],
-        [
-            InlineKeyboardButton(
-                text="🆔 My User ID",
-                callback_data="my_id"
-            )
         ]
     ]
 )
