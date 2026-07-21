@@ -14,9 +14,6 @@ from fastapi.staticfiles import StaticFiles
 
 from database.repository import TaskRepository
 
-# ─────────────────────────────────────────
-# App sozlamalari
-# ─────────────────────────────────────────
 
 app = FastAPI()
 
@@ -36,15 +33,7 @@ if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN environment variable o'rnatilmagan!")
 
 
-# ─────────────────────────────────────────
-# Telegram initData verify
-# ─────────────────────────────────────────
-
 def verify_init_data(init_data: str) -> dict:
-    """
-    Telegram WebApp initData ni HMAC-SHA256 bilan tekshiradi.
-    To'g'ri bo'lsa user dict qaytaradi, xato bo'lsa ValueError.
-    """
 
     parsed = dict(parse_qsl(unquote(init_data), keep_blank_values=True))
 
@@ -53,45 +42,35 @@ def verify_init_data(init_data: str) -> dict:
     if not received_hash:
         raise ValueError("Hash topilmadi")
 
-    # Kalitlar alfavit tartibida satr hosil qilamiz
     data_check_string = "\n".join(
         f"{k}={v}" for k, v in sorted(parsed.items())
     )
 
-    # Secret key: HMAC("WebAppData", bot_token)
     secret_key = hmac.new(
         b"WebAppData",
         BOT_TOKEN.encode(),
         hashlib.sha256
     ).digest()
 
-    # Hisoblangan hash
     computed_hash = hmac.new(
         secret_key,
         data_check_string.encode(),
         hashlib.sha256
     ).hexdigest()
 
-    # Hash solishtirish (timing-safe)
     if not hmac.compare_digest(computed_hash, received_hash):
         raise ValueError("initData yaroqsiz yoki buzilgan")
 
-    # 24 soatdan eski initData rad etiladi
     auth_date = int(parsed.get("auth_date", 0))
     if time.time() - auth_date > 86400:
         raise ValueError("initData muddati o'tgan, qayta kiring")
 
-    # User ma'lumotini olish
     user_json = parsed.get("user")
     if not user_json:
         raise ValueError("User ma'lumoti topilmadi")
 
     return json.loads(user_json)
 
-
-# ─────────────────────────────────────────
-# Routes
-# ─────────────────────────────────────────
 
 @app.get("/")
 async def home(request: Request):
@@ -137,9 +116,9 @@ async def auth(body: dict = Body(...)):
     response.set_cookie(
         key="user_id",
         value=str(telegram_id),
-        httponly=True,   # JS dan o'qib bo'lmaydi
-        samesite="none",  # Telegram iframe ichida ishlash uchun
-        secure=True      # Faqat HTTPS (Railway da bor)
+        httponly=True,
+        samesite="lax",   # "none" emas — "lax"
+        secure=True
     )
 
     return response
@@ -425,16 +404,3 @@ async def update_task(
         url="/tasks",
         status_code=303
     )
-
-
-@app.get("/logout")
-async def logout():
-
-    response = RedirectResponse(
-        url="/",
-        status_code=303
-    )
-
-    response.delete_cookie("user_id")
-
-    return response
