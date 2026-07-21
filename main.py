@@ -1,13 +1,22 @@
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import RedirectResponse
+import hmac
+import hashlib
+import json
+import time
+import os
+
+from urllib.parse import unquote, parse_qsl
+from datetime import datetime
+
+from fastapi import FastAPI, Request, Form, Body
+from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from datetime import datetime
-
 from database.repository import TaskRepository
 
-from fastapi import Body
+# ─────────────────────────────────────────
+# App sozlamalari
+# ─────────────────────────────────────────
 
 app = FastAPI()
 
@@ -21,6 +30,68 @@ app.mount(
 
 db = TaskRepository()
 
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN environment variable o'rnatilmagan!")
+
+
+# ─────────────────────────────────────────
+# Telegram initData verify
+# ─────────────────────────────────────────
+
+def verify_init_data(init_data: str) -> dict:
+    """
+    Telegram WebApp initData ni HMAC-SHA256 bilan tekshiradi.
+    To'g'ri bo'lsa user dict qaytaradi, xato bo'lsa ValueError.
+    """
+
+    parsed = dict(parse_qsl(unquote(init_data), keep_blank_values=True))
+
+    received_hash = parsed.pop("hash", None)
+
+    if not received_hash:
+        raise ValueError("Hash topilmadi")
+
+    # Kalitlar alfavit tartibida satr hosil qilamiz
+    data_check_string = "\n".join(
+        f"{k}={v}" for k, v in sorted(parsed.items())
+    )
+
+    # Secret key: HMAC("WebAppData", bot_token)
+    secret_key = hmac.new(
+        b"WebAppData",
+        BOT_TOKEN.encode(),
+        hashlib.sha256
+    ).digest()
+
+    # Hisoblangan hash
+    computed_hash = hmac.new(
+        secret_key,
+        data_check_string.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    # Hash solishtirish (timing-safe)
+    if not hmac.compare_digest(computed_hash, received_hash):
+        raise ValueError("initData yaroqsiz yoki buzilgan")
+
+    # 24 soatdan eski initData rad etiladi
+    auth_date = int(parsed.get("auth_date", 0))
+    if time.time() - auth_date > 86400:
+        raise ValueError("initData muddati o'tgan, qayta kiring")
+
+    # User ma'lumotini olish
+    user_json = parsed.get("user")
+    if not user_json:
+        raise ValueError("User ma'lumoti topilmadi")
+
+    return json.loads(user_json)
+
+
+# ─────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────
 
 @app.get("/")
 async def home(request: Request):
@@ -41,11 +112,37 @@ async def home(request: Request):
 
 
 @app.post("/auth")
-async def auth(data: dict = Body(...)):
+async def auth(body: dict = Body(...)):
 
-    print(data)
+    init_data = body.get("init_data", "")
 
-    return {"ok": True}
+    if not init_data:
+        return JSONResponse(
+            {"ok": False, "detail": "initData yuborilmadi"},
+            status_code=400
+        )
+
+    try:
+        tg_user = verify_init_data(init_data)
+    except (ValueError, json.JSONDecodeError) as e:
+        return JSONResponse(
+            {"ok": False, "detail": str(e)},
+            status_code=401
+        )
+
+    telegram_id = tg_user["id"]
+
+    response = JSONResponse({"ok": True})
+
+    response.set_cookie(
+        key="user_id",
+        value=str(telegram_id),
+        httponly=True,   # JS dan o'qib bo'lmaydi
+        samesite="none",  # Telegram iframe ichida ishlash uchun
+        secure=True      # Faqat HTTPS (Railway da bor)
+    )
+
+    return response
 
 
 @app.get("/tasks")
@@ -89,29 +186,21 @@ async def add_task(
         )
 
     try:
-
-        deadline = datetime.strptime(
-            deadline,
-            "%Y-%m-%d %H:%M"
-        )
-
+        deadline = datetime.strptime(deadline, "%Y-%m-%d %H:%M")
     except ValueError:
-
         tasks = db.show_tasks(int(user_id))
-
         return templates.TemplateResponse(
             request=request,
             name="tasks.html",
             context={
                 "tasks": tasks,
                 "user_id": int(user_id),
-                "error": "Please enter a valid date format. Example: 2026-07-18 15:30."}
+                "error": "Please enter a valid date format. Example: 2026-07-18 15:30."
+            }
         )
 
     if deadline < datetime.now():
-
         tasks = db.show_tasks(int(user_id))
-
         return templates.TemplateResponse(
             request=request,
             name="tasks.html",
@@ -267,7 +356,6 @@ async def update_task(
     )
 
     if len(task) < 3:
-
         return templates.TemplateResponse(
             request=request,
             name="edit.html",
@@ -279,7 +367,6 @@ async def update_task(
         )
 
     if len(description) > 200:
-
         return templates.TemplateResponse(
             request=request,
             name="edit.html",
@@ -291,7 +378,6 @@ async def update_task(
         )
 
     if priority not in ["Low", "Medium", "High"]:
-
         return templates.TemplateResponse(
             request=request,
             name="edit.html",
@@ -303,14 +389,8 @@ async def update_task(
         )
 
     try:
-
-        deadline = datetime.strptime(
-            deadline,
-            "%Y-%m-%d %H:%M"
-        )
-
+        deadline = datetime.strptime(deadline, "%Y-%m-%d %H:%M")
     except ValueError:
-
         return templates.TemplateResponse(
             request=request,
             name="edit.html",
@@ -322,7 +402,6 @@ async def update_task(
         )
 
     if deadline < datetime.now():
-
         return templates.TemplateResponse(
             request=request,
             name="edit.html",

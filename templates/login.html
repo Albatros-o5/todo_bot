@@ -4,63 +4,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo List Login</title>
-
+    <title>Todo List</title>
     <link rel="stylesheet" href="/static/login.css">
 </head>
 
 <body>
 
-    <!-- Logo -->
     <img src="/static/image/image1.png" alt="Logo" class="logo-image">
 
-    <!-- Login Card -->
     <div class="login-card">
-
         <h1>Welcome</h1>
-
-        <p>Login using your Telegram User ID</p>
-
-        <form action="/login" method="post" class="login-form">
-
-            <input type="number" name="user_id" placeholder="Telegram User ID" required>
-
-            <button type="submit">
-                Login
-            </button>
-
-        </form>
-
+        <p id="status">Connecting to Telegram...</p>
     </div>
 
-    <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
     <script>
-
         const tg = window.Telegram.WebApp;
-
         tg.ready();
         tg.expand();
 
-        console.log("Telegram Object:", tg);
-        console.log("initData:", tg.initData);
-        console.log("initDataUnsafe:", tg.initDataUnsafe);
+        if (!tg.initData) {
+            document.getElementById("status").textContent = "Please open this app inside Telegram.";
+        } else {
+            document.getElementById("status").textContent = "Logging in...";
 
-        alert("initData = " + tg.initData);
-
-        fetch("/auth", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(tg.initDataUnsafe)
-        })
-            .then(res => res.json())
-            .then(data => {
-                console.log(data);
-            });
-
+            fetch("/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ init_data: tg.initData })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        window.location.href = "/tasks";
+                    } else {
+                        document.getElementById("status").textContent = "Error: " + data.detail;
+                    }
+                })
+                .catch(() => {
+                    document.getElementById("status").textContent = "Connection error.";
+                });
+        }
     </script>
 
 </body>
