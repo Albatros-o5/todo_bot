@@ -14,7 +14,7 @@ from keyboard.reply_keyboard import reply_keyboard
 import asyncio
 
 router = Router()
-WEBAPP_URL = "https://todobot-production-ee27.up.railway.app"
+WEBAPP_URL = "https://romantic-insight-production-100b.up.railway.app"
 
 print("WEBAPP_URL =", repr(WEBAPP_URL))
 start_inline = InlineKeyboardMarkup(

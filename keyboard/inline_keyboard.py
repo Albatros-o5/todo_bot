@@ -8,7 +8,7 @@ def start_inline_keyboard():
             [
                 InlineKeyboardButton(
                     text="🌐 Open Web Dashboard",
-                    url="https://todobot-production-ee27.up.railway.app"
+                    url="https://romantic-insight-production-100b.up.railway.app"
                 )
             ]
         ]

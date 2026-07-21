@@ -4,7 +4,7 @@ from aiogram.types import (
     WebAppInfo
 )
 
-WEBAPP_URL = "https://todobot-production-ee27.up.railway.app"
+WEBAPP_URL = "https://romantic-insight-production-100b.up.railway.app"
 
 
 def reply_keyboard():
