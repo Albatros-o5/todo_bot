@@ -33,7 +33,20 @@
         </form>
 
     </div>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.ready();
+        tg.expand();
+
+        console.log("Telegram Object:", tg);
+        console.log("InitData:", tg.initData);
+        console.log("InitDataUnsafe:", tg.initDataUnsafe);
+
+        alert("InitData = " + tg.initData);
+    </script>
 </body>
 
 </html>
