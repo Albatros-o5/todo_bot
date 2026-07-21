@@ -26,24 +26,33 @@
         if (!tg.initData || tg.initData.length === 0) {
             document.getElementById("status").textContent = "Please open this app inside Telegram.";
         } else {
-            document.getElementById("status").textContent = "Logging in...";
 
-            fetch("/auth", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ init_data: tg.initData })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.ok) {
-                        window.location.href = "/tasks";
-                    } else {
-                        document.getElementById("status").textContent = "Error: " + data.detail;
-                    }
+            const user = tg.initDataUnsafe.user;
+
+            if (!user || !user.id) {
+                document.getElementById("status").textContent = "Error: user not found in initData.";
+            } else {
+
+                document.getElementById("status").textContent = "Logging in...";
+
+                fetch("/auth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ init_data: tg.initData })
                 })
-                .catch(() => {
-                    document.getElementById("status").textContent = "Connection error.";
-                });
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok) {
+                            // Cookie ishlamasa ham user_id URL da ketadi
+                            window.location.href = "/tasks?uid=" + user.id;
+                        } else {
+                            document.getElementById("status").textContent = "Error: " + data.detail;
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById("status").textContent = "Connection error.";
+                    });
+            }
         }
     </script>
 

@@ -125,9 +125,9 @@ async def auth(body: dict = Body(...)):
 
 
 @app.get("/tasks")
-async def tasks_page(request: Request):
+async def tasks_page(request: Request, uid: int = None):
 
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get("user_id") or uid
 
     if not user_id:
         return RedirectResponse(
