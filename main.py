@@ -93,7 +93,7 @@ async def home(request: Request):
 @app.post("/auth")
 async def auth(body: dict = Body(...)):
 
-    init_data = body.get("init_data", "")
+    init_data = body.get("init_data")
 
     if not init_data:
         return JSONResponse(
@@ -108,6 +108,7 @@ async def auth(body: dict = Body(...)):
             {"ok": False, "detail": str(e)},
             status_code=401
         )
+
     telegram_id = tg_user["id"]
 
     print("AUTH USER:", telegram_id)
@@ -118,8 +119,9 @@ async def auth(body: dict = Body(...)):
         key="user_id",
         value=str(telegram_id),
         httponly=True,
-        samesite="lax",   # "none" emas — "lax"
-        secure=True
+        secure=True,
+        samesite="none",
+        max_age=60 * 60 * 24 * 30
     )
 
     return response
@@ -128,7 +130,7 @@ async def auth(body: dict = Body(...)):
 @app.get("/tasks")
 async def tasks_page(request: Request):
 
-    print("==========")
+    print("=" * 40)
     print("COOKIE:", request.cookies)
 
     user_id = request.cookies.get("user_id")
