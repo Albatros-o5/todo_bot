@@ -14,15 +14,6 @@ def reply_keyboard():
         keyboard=[
 
             [
-                KeyboardButton(
-                    text="🌐 Dashboard",
-                    web_app=WebAppInfo(
-                        url=WEBAPP_URL
-                    )
-                )
-            ],
-
-            [
                 KeyboardButton(text="🛒 Add Task"),
                 KeyboardButton(text="📋 List Tasks")
             ],

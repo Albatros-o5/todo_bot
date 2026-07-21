@@ -15,8 +15,7 @@
 
     <div class="login-card">
         <h1>Welcome</h1>
-        <p id="status">Connecting...</p>
-        <p id="debug" style="font-size:11px;color:gray;word-break:break-all;"></p>
+        <p id="status">Connecting to Telegram...</p>
     </div>
 
     <script>
@@ -24,22 +23,15 @@
         tg.ready();
         tg.expand();
 
-        const debug = document.getElementById("debug");
-        const status = document.getElementById("status");
-
-        // initData bormi?
-        debug.textContent = "initData length: " + tg.initData.length;
-
         if (!tg.initData || tg.initData.length === 0) {
-            status.textContent = "Please open this app inside Telegram.";
+            document.getElementById("status").textContent = "Please open this app inside Telegram.";
         } else {
             const user = tg.initDataUnsafe.user;
-            debug.textContent = "user.id = " + (user ? user.id : "NULL");
 
             if (!user || !user.id) {
-                status.textContent = "Error: user not found.";
+                document.getElementById("status").textContent = "Error: user not found.";
             } else {
-                status.textContent = "Logging in as: " + user.id;
+                document.getElementById("status").textContent = "Logging in...";
 
                 fetch("/auth", {
                     method: "POST",
@@ -48,15 +40,14 @@
                 })
                     .then(res => res.json())
                     .then(data => {
-                        debug.textContent = "auth response: " + JSON.stringify(data);
                         if (data.ok) {
                             window.location.href = "/tasks?uid=" + user.id;
                         } else {
-                            status.textContent = "Auth error: " + data.detail;
+                            document.getElementById("status").textContent = "Error: " + data.detail;
                         }
                     })
-                    .catch(err => {
-                        status.textContent = "Fetch error: " + err;
+                    .catch(() => {
+                        document.getElementById("status").textContent = "Connection error.";
                     });
             }
         }
