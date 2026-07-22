@@ -99,9 +99,6 @@ def get_user_id(request: Request, init_data: str = None) -> int | None:
 
 @app.get("/")
 async def home(request: Request):
-    user_id = request.cookies.get("user_id")
-    if user_id:
-        return RedirectResponse(url="/tasks", status_code=303)
 
     return templates.TemplateResponse(
         request=request,
