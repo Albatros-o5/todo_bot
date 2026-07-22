@@ -33,6 +33,10 @@
             } else {
                 document.getElementById("status").textContent = "Logging in...";
 
+                // initData ni localStorage ga saqlaymiz
+                // tasks.html dagi formlar shu yerdan oladi
+                localStorage.setItem("tg_init_data", tg.initData);
+
                 fetch("/auth", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -41,7 +45,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.ok) {
-                            window.location.href = "/tasks?uid=" + user.id;
+                            window.location.href = "/tasks";
                         } else {
                             document.getElementById("status").textContent = "Error: " + data.detail;
                         }

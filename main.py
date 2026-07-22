@@ -34,11 +34,13 @@ if not BOT_TOKEN:
 
 
 def verify_init_data(init_data: str) -> dict:
-
+    """
+    Telegram WebApp initData ni HMAC-SHA256 bilan tekshiradi.
+    To'g'ri bo'lsa user dict qaytaradi, xato bo'lsa ValueError.
+    """
     parsed = dict(parse_qsl(unquote(init_data), keep_blank_values=True))
 
     received_hash = parsed.pop("hash", None)
-
     if not received_hash:
         raise ValueError("Hash topilmadi")
 
@@ -63,7 +65,7 @@ def verify_init_data(init_data: str) -> dict:
 
     auth_date = int(parsed.get("auth_date", 0))
     if time.time() - auth_date > 86400:
-        raise ValueError("initData muddati o'tgan, qayta kiring")
+        raise ValueError("initData muddati o'tgan")
 
     user_json = parsed.get("user")
     if not user_json:
@@ -72,16 +74,36 @@ def verify_init_data(init_data: str) -> dict:
     return json.loads(user_json)
 
 
+def get_user_id(request: Request, init_data: str = None) -> int | None:
+    """
+    Avval cookie dan oladi.
+    Cookie bo'lmasa initData ni verify qilib user_id oladi.
+    """
+    user_id = request.cookies.get("user_id")
+    if user_id:
+        return int(user_id)
+
+    if init_data:
+        try:
+            tg_user = verify_init_data(init_data)
+            return int(tg_user["id"])
+        except Exception:
+            return None
+
+    return None
+
+
+# ─────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────
+
 @app.get("/")
 async def home(request: Request):
 
     user_id = request.cookies.get("user_id")
 
     if user_id:
-        return RedirectResponse(
-            url="/tasks",
-            status_code=303
-        )
+        return RedirectResponse(url="/tasks", status_code=303)
 
     return templates.TemplateResponse(
         request=request,
@@ -111,8 +133,6 @@ async def auth(body: dict = Body(...)):
 
     telegram_id = tg_user["id"]
 
-    print("AUTH USER:", telegram_id)
-
     response = JSONResponse({"ok": True})
 
     response.set_cookie(
@@ -129,20 +149,16 @@ async def auth(body: dict = Body(...)):
 
 @app.get("/tasks")
 async def tasks_page(request: Request):
-
-    print("=" * 40)
-    print("COOKIE:", request.cookies)
-
+    """
+    Cookie dan user_id oladi.
+    Cookie bo'lmasa login sahifasiga qaytaradi.
+    """
     user_id = request.cookies.get("user_id")
 
-    print("USER_ID:", user_id)
-
     if not user_id:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse(url="/", status_code=303)
 
     tasks = db.show_tasks(int(user_id))
-
-    print("TASK COUNT:", len(tasks))
 
     return templates.TemplateResponse(
         request=request,
@@ -160,157 +176,118 @@ async def add_task(
     task: str = Form(...),
     description: str = Form(...),
     deadline: str = Form(...),
-    priority: str = Form(...)
+    priority: str = Form(...),
+    init_data: str = Form(None)
 ):
-
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse(url="/", status_code=303)
 
     try:
         deadline = datetime.strptime(deadline, "%Y-%m-%d %H:%M")
     except ValueError:
-        tasks = db.show_tasks(int(user_id))
+        tasks = db.show_tasks(user_id)
         return templates.TemplateResponse(
             request=request,
             name="tasks.html",
             context={
                 "tasks": tasks,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "Please enter a valid date format. Example: 2026-07-18 15:30."
             }
         )
 
     if deadline < datetime.now():
-        tasks = db.show_tasks(int(user_id))
+        tasks = db.show_tasks(user_id)
         return templates.TemplateResponse(
             request=request,
             name="tasks.html",
             context={
                 "tasks": tasks,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "The deadline cannot be in the past. Please select a future date and time."
             }
         )
 
     db.add_task(
-        user_id=int(user_id),
+        user_id=user_id,
         task=task,
         description=description,
         deadline=deadline,
         priority=priority
     )
 
-    return RedirectResponse(
-        url="/tasks",
-        status_code=303
-    )
+    return RedirectResponse(url="/tasks", status_code=303)
 
 
 @app.post("/delete")
 async def delete_task(
     request: Request,
-    task_id: int = Form(...)
+    task_id: int = Form(...),
+    init_data: str = Form(None)
 ):
-
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse(url="/", status_code=303)
 
-    db.delete_task(
-        task_id=task_id,
-        user_id=int(user_id)
-    )
+    db.delete_task(task_id=task_id, user_id=user_id)
 
-    return RedirectResponse(
-        url="/tasks",
-        status_code=303
-    )
+    return RedirectResponse(url="/tasks", status_code=303)
 
 
 @app.post("/done")
 async def done_task(
     request: Request,
-    task_id: int = Form(...)
+    task_id: int = Form(...),
+    init_data: str = Form(None)
 ):
-
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse(url="/", status_code=303)
 
-    db.done_task(
-        task_id=task_id,
-        user_id=int(user_id)
-    )
+    db.done_task(task_id=task_id, user_id=user_id)
 
-    return RedirectResponse(
-        url="/tasks",
-        status_code=303
-    )
+    return RedirectResponse(url="/tasks", status_code=303)
 
 
 @app.post("/undone")
 async def undone_task(
     request: Request,
-    task_id: int = Form(...)
+    task_id: int = Form(...),
+    init_data: str = Form(None)
 ):
-
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse(url="/", status_code=303)
 
-    db.undone_task(
-        task_id=task_id,
-        user_id=int(user_id)
-    )
+    db.undone_task(task_id=task_id, user_id=user_id)
 
-    return RedirectResponse(
-        url="/tasks",
-        status_code=303
-    )
+    return RedirectResponse(url="/tasks", status_code=303)
 
 
 @app.post("/edit")
 async def edit(
     request: Request,
-    task_id: int = Form(...)
+    task_id: int = Form(...),
+    init_data: str = Form(None)
 ):
-
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse(url="/", status_code=303)
 
-    task = db.get_task(
-        task_id=task_id,
-        user_id=int(user_id)
-    )
+    task = db.get_task(task_id=task_id, user_id=user_id)
 
     return templates.TemplateResponse(
         request=request,
         name="edit.html",
         context={
             "task": task,
-            "user_id": int(user_id)
+            "user_id": user_id
         }
     )
 
@@ -322,24 +299,18 @@ async def update_task(
     task: str = Form(...),
     description: str = Form(...),
     deadline: str = Form(...),
-    priority: str = Form(...)
+    priority: str = Form(...),
+    init_data: str = Form(None)
 ):
-
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
-        return RedirectResponse(
-            url="/",
-            status_code=303
-        )
+        return RedirectResponse(url="/", status_code=303)
 
     task = task.strip()
     description = description.strip()
 
-    current_task = db.get_task(
-        task_id=task_id,
-        user_id=int(user_id)
-    )
+    current_task = db.get_task(task_id=task_id, user_id=user_id)
 
     if len(task) < 3:
         return templates.TemplateResponse(
@@ -347,7 +318,7 @@ async def update_task(
             name="edit.html",
             context={
                 "task": current_task,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "Task must contain at least 3 characters."
             }
         )
@@ -358,7 +329,7 @@ async def update_task(
             name="edit.html",
             context={
                 "task": current_task,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "Description cannot exceed 200 characters."
             }
         )
@@ -369,7 +340,7 @@ async def update_task(
             name="edit.html",
             context={
                 "task": current_task,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "Invalid priority selected."
             }
         )
@@ -382,7 +353,7 @@ async def update_task(
             name="edit.html",
             context={
                 "task": current_task,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "Please enter a valid date format. Example: 2026-07-18 15:30."
             }
         )
@@ -393,21 +364,18 @@ async def update_task(
             name="edit.html",
             context={
                 "task": current_task,
-                "user_id": int(user_id),
+                "user_id": user_id,
                 "error": "The deadline cannot be in the past. Please select a future date and time."
             }
         )
 
     db.update_task(
         task_id=task_id,
-        user_id=int(user_id),
+        user_id=user_id,
         task=task,
         description=description,
         deadline=deadline,
         priority=priority
     )
 
-    return RedirectResponse(
-        url="/tasks",
-        status_code=303
-    )
+    return RedirectResponse(url="/tasks", status_code=303)
