@@ -21,11 +21,15 @@
 
         <div class="top-bar">
 
-            <h1>My Tasks</h1>
+            <div>
+
+                <h1>My Tasks</h1>
+
+            </div>
 
         </div>
 
-        <!-- DESKTOP TABLE -->
+        <!-- Desktop Table -->
 
         <div class="table-wrapper desktop-table">
 
@@ -68,9 +72,13 @@
                         <td>
 
                             {% if task.status %}
+
                             ✅ Done
+
                             {% else %}
+
                             ❌ Not Done
+
                             {% endif %}
 
                         </td>
@@ -81,7 +89,7 @@
 
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                                <button class="delete-btn" type="submit">
+                                <button class="delete-btn">
 
                                     Delete
 
@@ -99,7 +107,7 @@
 
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                                <button class="undo-btn" type="submit">
+                                <button class="undo-btn">
 
                                     Undo
 
@@ -113,7 +121,7 @@
 
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                                <button class="done-btn" type="submit">
+                                <button class="done-btn">
 
                                     Done
 
@@ -131,7 +139,7 @@
 
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                                <button class="edit-btn" type="submit">
+                                <button class="edit-btn">
 
                                     Edit
 
@@ -150,7 +158,7 @@
             </table>
 
         </div>
-        <!-- MOBILE VERSION -->
+        <!-- Mobile Version -->
 
         <div class="mobile-tasks">
 
@@ -170,15 +178,21 @@
 
                         {% if task.status %}
 
-                        <span class="done">✅</span>
+                        <span class="done">
+                            ✅
+                        </span>
 
                         {% else %}
 
-                        <span class="not-done">❌</span>
+                        <span class="not-done">
+                            ❌
+                        </span>
 
                         {% endif %}
 
-                        <span class="arrow">▶</span>
+                        <span class="arrow">
+                            ▶
+                        </span>
 
                     </div>
 
@@ -240,7 +254,7 @@
 
                             <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                            <button class="delete-btn" type="submit">
+                            <button class="delete-btn">
 
                                 Delete
 
@@ -248,14 +262,13 @@
 
                         </form>
 
-
                         {% if task.status %}
 
                         <form action="/undone" method="post" class="tg-form">
 
                             <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                            <button class="undo-btn" type="submit">
+                            <button class="undo-btn">
 
                                 Undo
 
@@ -269,7 +282,7 @@
 
                             <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                            <button class="done-btn" type="submit">
+                            <button class="done-btn">
 
                                 Done
 
@@ -283,7 +296,7 @@
 
                             <input type="hidden" name="task_id" value="{{ task.id }}">
 
-                            <button class="edit-btn" type="submit">
+                            <button class="edit-btn">
 
                                 Edit
 
@@ -319,46 +332,59 @@
             <form action="/add" method="post" class="tg-form">
 
                 <label for="task">
+
                     Task
+
                 </label>
 
                 <input id="task" type="text" name="task" minlength="3" maxlength="50" required>
 
                 <label for="description">
+
                     Description
+
                 </label>
 
                 <textarea id="description" name="description" maxlength="200"></textarea>
 
                 <label for="deadline">
+
                     Deadline
+
                 </label>
 
                 <input id="deadline" type="text" name="deadline" placeholder="2026-07-18 15:30" required>
 
                 <small>
 
-                    Format:
-                    YYYY-MM-DD HH:MM
+                    Format : YYYY-MM-DD HH:MM
 
                 </small>
 
                 <label for="priority">
+
                     Priority
+
                 </label>
 
                 <select id="priority" name="priority">
 
                     <option value="Low">
+
                         Low
+
                     </option>
 
                     <option value="Medium">
+
                         Medium
+
                     </option>
 
                     <option value="High">
+
                         High
+
                     </option>
 
                 </select>
@@ -372,55 +398,94 @@
             </form>
 
         </div>
+        <script>
 
-    </div>
+            const tg = window.Telegram.WebApp;
 
-    <script>
+            tg.ready();
 
-        const tg = window.Telegram.WebApp;
+            tg.expand();
 
-        tg.ready();
+            /*
+                Har safar sahifa ochilganda
+                cookie yangilanadi.
+            */
 
-        tg.expand();
+            async function refreshAuth() {
 
-        const initData = tg.initData;
+                if (!tg.initData) {
 
-        // cookie yangilash
-        fetch("/auth", {
+                    return;
 
-            method: "POST",
+                }
 
-            headers: {
+                try {
 
-                "Content-Type": "application/json"
+                    await fetch("/auth", {
 
-            },
+                        method: "POST",
 
-            body: JSON.stringify({
+                        headers: {
 
-                init_data: initData
+                            "Content-Type": "application/json"
 
-            })
+                        },
 
-        });
+                        body: JSON.stringify({
 
-        // barcha formalarga init_data qo'shish
+                            init_data: tg.initData
 
-        document.querySelectorAll(".tg-form").forEach(form => {
+                        })
 
-            const hidden = document.createElement("input");
+                    });
 
-            hidden.type = "hidden";
+                }
 
-            hidden.name = "init_data";
+                catch (error) {
 
-            hidden.value = initData;
+                    console.log(error);
 
-            form.appendChild(hidden);
+                }
 
-        });
+            }
 
-    </script>
+            refreshAuth();
+
+            /*
+                Barcha formalarga initData qo'shamiz
+            */
+
+            document
+                .querySelectorAll(".tg-form")
+                .forEach(form => {
+
+                    form.addEventListener("submit", () => {
+
+                        const old = form.querySelector(
+                            'input[name="init_data"]'
+                        );
+
+                        if (old) {
+
+                            old.remove();
+
+                        }
+
+                        const input = document.createElement("input");
+
+                        input.type = "hidden";
+
+                        input.name = "init_data";
+
+                        input.value = tg.initData;
+
+                        form.appendChild(input);
+
+                    });
+
+                });
+
+        </script>
 
 </body>
 

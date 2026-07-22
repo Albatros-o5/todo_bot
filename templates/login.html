@@ -2,44 +2,100 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Todo List</title>
+
     <link rel="stylesheet" href="/static/login.css">
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 </head>
 
 <body>
 
-    <img src="/static/image/image1.png" alt="Logo" class="logo-image">
+    <img src="/static/image/image1.png" class="logo-image" alt="Logo">
 
     <div class="login-card">
+
         <h1>Welcome</h1>
-        <p id="status">Connecting to Telegram...</p>
+
+        <p id="status">
+
+            Connecting to Telegram...
+
+        </p>
+
     </div>
 
     <script>
+
         const tg = window.Telegram.WebApp;
+
         tg.ready();
+
         tg.expand();
 
-        if (!tg.initData || tg.initData.length === 0) {
-            document.getElementById("status").textContent = "Please open this app inside Telegram.";
-        } else {
-            const user = tg.initDataUnsafe.user;
+        async function login() {
 
-            if (!user || !user.id) {
-                document.getElementById("status").textContent = "Error: user not found.";
-            } else {
-                document.getElementById("status").textContent = "Logging in...";
+            if (!tg.initData) {
 
-                // initData ni localStorage ga saqlaymiz (formlar uchun)
-                localStorage.setItem("tg_init_data", tg.initData);
+                document.getElementById("status").innerHTML =
+                    "Please open inside Telegram.";
 
-                // /tasks ga initData bilan o'tamiz — cookie kerak emas
-                window.location.href = "/tasks?init_data=" + encodeURIComponent(tg.initData);
+                return;
             }
+
+            document.getElementById("status").innerHTML =
+                "Authorizing...";
+
+            try {
+
+                const response = await fetch(
+                    "/auth",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            init_data: tg.initData
+
+                        })
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!result.ok) {
+
+                    document.getElementById("status").innerHTML =
+                        result.detail;
+
+                    return;
+                }
+
+                window.location.replace("/tasks");
+
+            }
+
+            catch (e) {
+
+                document.getElementById("status").innerHTML =
+                    "Connection error.";
+
+            }
+
         }
+
+        login();
+
     </script>
 
 </body>

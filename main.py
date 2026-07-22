@@ -7,16 +7,29 @@ import hashlib
 from urllib.parse import parse_qsl, unquote
 from datetime import datetime
 
-from fastapi import FastAPI, Request, Form, Body
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import (
+    FastAPI,
+    Request,
+    Form,
+    Body
+)
+
+from fastapi.responses import (
+    JSONResponse,
+    RedirectResponse
+)
+
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from database.repository import TaskRepository
 
+
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(
+    directory="templates"
+)
 
 app.mount(
     "/static",
@@ -29,10 +42,12 @@ db = TaskRepository()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN topilmadi")
+    raise RuntimeError(
+        "BOT_TOKEN environment variable topilmadi."
+    )
 
 
-def verify_init_data(init_data: str):
+def verify_init_data(init_data: str) -> dict:
 
     parsed = dict(
         parse_qsl(
@@ -41,10 +56,13 @@ def verify_init_data(init_data: str):
         )
     )
 
-    received_hash = parsed.pop("hash", None)
+    received_hash = parsed.pop(
+        "hash",
+        None
+    )
 
     if not received_hash:
-        raise ValueError("Hash topilmadi")
+        raise ValueError("Hash topilmadi.")
 
     data_check_string = "\n".join(
         f"{k}={v}"
@@ -67,55 +85,75 @@ def verify_init_data(init_data: str):
         calculated_hash,
         received_hash
     ):
-        raise ValueError("initData noto'g'ri")
+        raise ValueError("Invalid Telegram initData.")
 
-    auth_date = int(parsed["auth_date"])
+    auth_date = int(
+        parsed.get(
+            "auth_date",
+            0
+        )
+    )
 
     if time.time() - auth_date > 86400:
-        raise ValueError("Session eskirgan")
+        raise ValueError(
+            "Session expired."
+        )
 
-    user = json.loads(parsed["user"])
+    user = json.loads(
+        parsed["user"]
+    )
 
     return user
 
 
-def get_user_id(
-    request: Request,
-    init_data: str = None
-):
+def get_user_id(request: Request):
 
-    cookie = request.cookies.get("user_id")
+    user_id = request.cookies.get(
+        "user_id"
+    )
 
-    if cookie:
-        return int(cookie)
+    if not user_id:
+        return None
 
-    if init_data:
+    return int(user_id)
 
-        user = verify_init_data(init_data)
 
-        return int(user["id"])
+def no_cache(response):
 
-    return None
+    response.headers["Cache-Control"] = (
+        "no-store, no-cache, must-revalidate, max-age=0"
+    )
+
+    response.headers["Pragma"] = "no-cache"
+
+    response.headers["Expires"] = "0"
+
+    return response
 
 
 @app.get("/")
 async def home(request: Request):
 
-    if request.cookies.get("user_id"):
+    if get_user_id(request):
+
         return RedirectResponse(
-            "/tasks",
+            url="/tasks",
             status_code=303
         )
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request=request,
         name="login.html",
         context={}
     )
 
+    return no_cache(response)
+
 
 @app.post("/auth")
-async def auth(body: dict = Body(...)):
+async def auth(
+    body: dict = Body(...)
+):
 
     init_data = body.get("init_data")
 
@@ -124,7 +162,7 @@ async def auth(body: dict = Body(...)):
         return JSONResponse(
             {
                 "ok": False,
-                "detail": "initData mavjud emas"
+                "detail": "initData not found."
             },
             status_code=400
         )
@@ -143,6 +181,8 @@ async def auth(body: dict = Body(...)):
             status_code=401
         )
 
+    telegram_id = int(user["id"])
+
     response = JSONResponse(
         {
             "ok": True
@@ -151,37 +191,33 @@ async def auth(body: dict = Body(...)):
 
     response.set_cookie(
         key="user_id",
-        value=str(user["id"]),
+        value=str(telegram_id),
         httponly=True,
         secure=True,
         samesite="none",
         max_age=60 * 60 * 24 * 30
     )
 
-    return response
+    return no_cache(response)
 
 
 @app.get("/tasks")
 async def tasks_page(
-    request: Request,
-    init_data: str = None
+    request: Request
 ):
 
-    user_id = get_user_id(
-        request,
-        init_data
-    )
+    user_id = get_user_id(request)
 
     if not user_id:
 
         return RedirectResponse(
-            "/",
+            url="/",
             status_code=303
         )
 
     tasks = db.show_tasks(user_id)
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request=request,
         name="tasks.html",
         context={
@@ -190,6 +226,8 @@ async def tasks_page(
         }
     )
 
+    return no_cache(response)
+
 
 @app.post("/add")
 async def add_task(
@@ -197,11 +235,10 @@ async def add_task(
     task: str = Form(...),
     description: str = Form(""),
     deadline: str = Form(...),
-    priority: str = Form(...),
-    init_data: str = Form(None)
+    priority: str = Form(...)
 ):
 
-    user_id = get_user_id(request, init_data)
+    user_id = get_user_id(request)
 
     if not user_id:
         return RedirectResponse("/", status_code=303)
@@ -213,7 +250,7 @@ async def add_task(
 
         tasks = db.show_tasks(user_id)
 
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request=request,
             name="tasks.html",
             context={
@@ -223,7 +260,10 @@ async def add_task(
             }
         )
 
+        return no_cache(response)
+
     try:
+
         deadline = datetime.strptime(
             deadline,
             "%Y-%m-%d %H:%M"
@@ -233,7 +273,7 @@ async def add_task(
 
         tasks = db.show_tasks(user_id)
 
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request=request,
             name="tasks.html",
             context={
@@ -243,11 +283,13 @@ async def add_task(
             }
         )
 
+        return no_cache(response)
+
     if deadline < datetime.now():
 
         tasks = db.show_tasks(user_id)
 
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request=request,
             name="tasks.html",
             context={
@@ -256,6 +298,8 @@ async def add_task(
                 "error": "Deadline cannot be in the past."
             }
         )
+
+        return no_cache(response)
 
     db.add_task(
         user_id=user_id,
@@ -274,11 +318,10 @@ async def add_task(
 @app.post("/delete")
 async def delete_task(
     request: Request,
-    task_id: int = Form(...),
-    init_data: str = Form(None)
+    task_id: int = Form(...)
 ):
 
-    user_id = get_user_id(request, init_data)
+    user_id = get_user_id(request)
 
     if not user_id:
         return RedirectResponse("/", status_code=303)
@@ -297,11 +340,10 @@ async def delete_task(
 @app.post("/done")
 async def done_task(
     request: Request,
-    task_id: int = Form(...),
-    init_data: str = Form(None)
+    task_id: int = Form(...)
 ):
 
-    user_id = get_user_id(request, init_data)
+    user_id = get_user_id(request)
 
     if not user_id:
         return RedirectResponse("/", status_code=303)
@@ -320,11 +362,10 @@ async def done_task(
 @app.post("/undone")
 async def undone_task(
     request: Request,
-    task_id: int = Form(...),
-    init_data: str = Form(None)
+    task_id: int = Form(...)
 ):
 
-    user_id = get_user_id(request, init_data)
+    user_id = get_user_id(request)
 
     if not user_id:
         return RedirectResponse("/", status_code=303)
@@ -343,11 +384,10 @@ async def undone_task(
 @app.post("/edit")
 async def edit_page(
     request: Request,
-    task_id: int = Form(...),
-    init_data: str = Form(None)
+    task_id: int = Form(...)
 ):
 
-    user_id = get_user_id(request, init_data)
+    user_id = get_user_id(request)
 
     if not user_id:
         return RedirectResponse("/", status_code=303)
@@ -363,7 +403,7 @@ async def edit_page(
             status_code=303
         )
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request=request,
         name="edit.html",
         context={
@@ -371,6 +411,8 @@ async def edit_page(
             "user_id": user_id
         }
     )
+
+    return no_cache(response)
 
 
 @app.post("/update")
@@ -380,11 +422,10 @@ async def update_task(
     task: str = Form(...),
     description: str = Form(""),
     deadline: str = Form(...),
-    priority: str = Form(...),
-    init_data: str = Form(None)
+    priority: str = Form(...)
 ):
 
-    user_id = get_user_id(request, init_data)
+    user_id = get_user_id(request)
 
     if not user_id:
         return RedirectResponse(
@@ -392,22 +433,24 @@ async def update_task(
             status_code=303
         )
 
-    task = task.strip()
-    description = description.strip()
-
     current_task = db.get_task(
         task_id=task_id,
         user_id=user_id
     )
 
     if not current_task:
+
         return RedirectResponse(
             "/tasks",
             status_code=303
         )
 
+    task = task.strip()
+    description = description.strip()
+
     if len(task) < 3:
-        return templates.TemplateResponse(
+
+        response = templates.TemplateResponse(
             request=request,
             name="edit.html",
             context={
@@ -417,8 +460,11 @@ async def update_task(
             }
         )
 
+        return no_cache(response)
+
     if len(description) > 200:
-        return templates.TemplateResponse(
+
+        response = templates.TemplateResponse(
             request=request,
             name="edit.html",
             context={
@@ -428,44 +474,60 @@ async def update_task(
             }
         )
 
-    if priority not in ["Low", "Medium", "High"]:
-        return templates.TemplateResponse(
+        return no_cache(response)
+
+    if priority not in [
+        "Low",
+        "Medium",
+        "High"
+    ]:
+
+        response = templates.TemplateResponse(
             request=request,
             name="edit.html",
             context={
                 "task": current_task,
                 "user_id": user_id,
-                "error": "Invalid priority selected."
+                "error": "Invalid priority."
             }
         )
 
+        return no_cache(response)
+
     try:
+
         deadline = datetime.strptime(
             deadline,
             "%Y-%m-%d %H:%M"
         )
 
     except ValueError:
-        return templates.TemplateResponse(
+
+        response = templates.TemplateResponse(
             request=request,
             name="edit.html",
             context={
                 "task": current_task,
                 "user_id": user_id,
-                "error": "Please enter a valid date format. Example: 2026-07-18 15:30."
+                "error": "Wrong date format."
             }
         )
 
+        return no_cache(response)
+
     if deadline < datetime.now():
-        return templates.TemplateResponse(
+
+        response = templates.TemplateResponse(
             request=request,
             name="edit.html",
             context={
                 "task": current_task,
                 "user_id": user_id,
-                "error": "The deadline cannot be in the past."
+                "error": "Deadline cannot be in the past."
             }
         )
+
+        return no_cache(response)
 
     db.update_task(
         task_id=task_id,
