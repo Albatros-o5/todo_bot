@@ -7,6 +7,8 @@
     <title>Edit Task</title>
 
     <link rel="stylesheet" href="/static/edit.css">
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
 <body>
@@ -14,22 +16,24 @@
     <div class="edit-card">
 
         <h1>Edit Task</h1>
-        <p class="subtitle">Update Task Details</p>
-        {% if error %}
 
+        <p class="subtitle">
+            Update Task Details
+        </p>
+
+        {% if error %}
         <div class="error-box">
             {{ error }}
         </div>
-
         {% endif %}
 
-        <form action="/update" method="post" class="edit-form">
+        <form action="/update" method="post" class="edit-form tg-form">
 
             <input type="hidden" name="task_id" value="{{ task.id }}">
 
             <label>Task</label>
 
-            <input type="text" name="task" value="{{ task.task }}" maxlength="50" required>
+            <input type="text" name="task" value="{{ task.task }}" minlength="3" maxlength="50" required>
 
             <label>Description</label>
 
@@ -48,15 +52,15 @@
 
             <select name="priority">
 
-                <option value="Low" {% if task.priority=="Low" %}selected{% endif %}>
+                <option value="Low" {% if task.priority=="Low" %} selected {% endif %}>
                     Low
                 </option>
 
-                <option value="Medium" {% if task.priority=="Medium" %}selected{% endif %}>
+                <option value="Medium" {% if task.priority=="Medium" %} selected {% endif %}>
                     Medium
                 </option>
 
-                <option value="High" {% if task.priority=="High" %}selected{% endif %}>
+                <option value="High" {% if task.priority=="High" %} selected {% endif %}>
                     High
                 </option>
 
@@ -64,9 +68,9 @@
 
             <div class="button-row">
 
-                <a href="/tasks" class="cancel-btn">
+                <button type="button" class="cancel-btn" onclick="window.location='/tasks'">
                     Cancel
-                </a>
+                </button>
 
                 <button type="submit">
                     Save Changes
@@ -77,6 +81,33 @@
         </form>
 
     </div>
+
+    <script>
+
+        const tg = window.Telegram.WebApp;
+
+        tg.ready();
+        tg.expand();
+
+        const initData = tg.initData || "";
+
+        document.querySelector(".tg-form").addEventListener("submit", function () {
+
+            const old = this.querySelector('input[name="init_data"]');
+
+            if (old) old.remove();
+
+            const input = document.createElement("input");
+
+            input.type = "hidden";
+            input.name = "init_data";
+            input.value = initData;
+
+            this.appendChild(input);
+
+        });
+
+    </script>
 
 </body>
 
