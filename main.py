@@ -132,6 +132,7 @@ async def auth(body: dict = Body(...)):
         )
 
     telegram_id = tg_user["id"]
+    print(f">>> AUTH USER ID: {telegram_id}")
 
     response = JSONResponse({"ok": True})
 
