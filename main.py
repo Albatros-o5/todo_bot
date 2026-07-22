@@ -79,9 +79,9 @@ def get_user_id(request: Request, init_data: str = None) -> int | None:
     Avval cookie dan oladi.
     Cookie bo'lmasa initData ni verify qilib user_id oladi.
     """
-    user_id = request.cookies.get("user_id")
-    if user_id:
-        return int(user_id)
+    cookie_user_id = request.cookies.get("user_id")
+    if cookie_user_id:
+        return int(cookie_user_id)
 
     if init_data:
         try:
@@ -99,9 +99,7 @@ def get_user_id(request: Request, init_data: str = None) -> int | None:
 
 @app.get("/")
 async def home(request: Request):
-
     user_id = request.cookies.get("user_id")
-
     if user_id:
         return RedirectResponse(url="/tasks", status_code=303)
 
@@ -112,61 +110,25 @@ async def home(request: Request):
     )
 
 
-@app.post("/auth")
-async def auth(body: dict = Body(...)):
-
-    init_data = body.get("init_data")
-
-    if not init_data:
-        return JSONResponse(
-            {"ok": False, "detail": "initData yuborilmadi"},
-            status_code=400
-        )
-
-    try:
-        tg_user = verify_init_data(init_data)
-    except (ValueError, json.JSONDecodeError) as e:
-        return JSONResponse(
-            {"ok": False, "detail": str(e)},
-            status_code=401
-        )
-
-    telegram_id = tg_user["id"]
-    print(f">>> AUTH USER ID: {telegram_id}")
-
-    response = JSONResponse({"ok": True})
-
-    response.set_cookie(
-        key="user_id",
-        value=str(telegram_id),
-        httponly=True,
-        secure=True,
-        samesite="none",
-        max_age=60 * 60 * 24 * 30
-    )
-
-    return response
-
-
 @app.get("/tasks")
-async def tasks_page(request: Request):
+async def tasks_page(request: Request, init_data: str = None):
     """
-    Cookie dan user_id oladi.
-    Cookie bo'lmasa login sahifasiga qaytaradi.
+    Cookie yoki initData (query param) dan user_id oladi.
     """
-    user_id = request.cookies.get("user_id")
+    user_id = get_user_id(request, init_data)
 
     if not user_id:
         return RedirectResponse(url="/", status_code=303)
 
-    tasks = db.show_tasks(int(user_id))
+    tasks = db.show_tasks(user_id)
 
     return templates.TemplateResponse(
         request=request,
         name="tasks.html",
         context={
             "tasks": tasks,
-            "user_id": int(user_id)
+            "user_id": user_id,
+            "init_data": init_data or ""
         }
     )
 
@@ -195,6 +157,7 @@ async def add_task(
             context={
                 "tasks": tasks,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "Please enter a valid date format. Example: 2026-07-18 15:30."
             }
         )
@@ -207,6 +170,7 @@ async def add_task(
             context={
                 "tasks": tasks,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "The deadline cannot be in the past. Please select a future date and time."
             }
         )
@@ -219,7 +183,10 @@ async def add_task(
         priority=priority
     )
 
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(
+        url=f"/tasks?init_data={init_data}" if init_data else "/tasks",
+        status_code=303
+    )
 
 
 @app.post("/delete")
@@ -235,7 +202,10 @@ async def delete_task(
 
     db.delete_task(task_id=task_id, user_id=user_id)
 
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(
+        url=f"/tasks?init_data={init_data}" if init_data else "/tasks",
+        status_code=303
+    )
 
 
 @app.post("/done")
@@ -251,7 +221,10 @@ async def done_task(
 
     db.done_task(task_id=task_id, user_id=user_id)
 
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(
+        url=f"/tasks?init_data={init_data}" if init_data else "/tasks",
+        status_code=303
+    )
 
 
 @app.post("/undone")
@@ -267,7 +240,10 @@ async def undone_task(
 
     db.undone_task(task_id=task_id, user_id=user_id)
 
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(
+        url=f"/tasks?init_data={init_data}" if init_data else "/tasks",
+        status_code=303
+    )
 
 
 @app.post("/edit")
@@ -288,7 +264,8 @@ async def edit(
         name="edit.html",
         context={
             "task": task,
-            "user_id": user_id
+            "user_id": user_id,
+            "init_data": init_data or ""
         }
     )
 
@@ -320,6 +297,7 @@ async def update_task(
             context={
                 "task": current_task,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "Task must contain at least 3 characters."
             }
         )
@@ -331,6 +309,7 @@ async def update_task(
             context={
                 "task": current_task,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "Description cannot exceed 200 characters."
             }
         )
@@ -342,6 +321,7 @@ async def update_task(
             context={
                 "task": current_task,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "Invalid priority selected."
             }
         )
@@ -355,6 +335,7 @@ async def update_task(
             context={
                 "task": current_task,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "Please enter a valid date format. Example: 2026-07-18 15:30."
             }
         )
@@ -366,6 +347,7 @@ async def update_task(
             context={
                 "task": current_task,
                 "user_id": user_id,
+                "init_data": init_data or "",
                 "error": "The deadline cannot be in the past. Please select a future date and time."
             }
         )
@@ -379,4 +361,7 @@ async def update_task(
         priority=priority
     )
 
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(
+        url=f"/tasks?init_data={init_data}" if init_data else "/tasks",
+        status_code=303
+    )

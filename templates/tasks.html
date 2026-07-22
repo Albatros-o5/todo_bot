@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Tasks</title>
-
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -14,22 +13,16 @@
     <div class="container">
 
         <div class="top-bar">
-
             <div>
                 <h1>My Tasks</h1>
             </div>
         </div>
 
         <!-- DESKTOP TABLE -->
-
         <div class="table-wrapper desktop-table">
-
             <table>
-
                 <thead>
-
                     <tr>
-
                         <th>ID</th>
                         <th>Task</th>
                         <th>Description</th>
@@ -39,266 +32,140 @@
                         <th>Delete</th>
                         <th>Done</th>
                         <th>Edit</th>
-
                     </tr>
-
                 </thead>
-
                 <tbody>
-
                     {% for task in tasks %}
-
                     <tr>
-
                         <td>{{ task.id }}</td>
                         <td>{{ task.task }}</td>
                         <td>{{ task.description }}</td>
                         <td>{{ task.deadline }}</td>
                         <td>{{ task.priority }}</td>
-
                         <td>
-
-                            {% if task.status %}
-                            ✅ Done
-                            {% else %}
-                            ❌ Not Done
-                            {% endif %}
-
+                            {% if task.status %}✅ Done{% else %}❌ Not Done{% endif %}
                         </td>
-
                         <td>
-
                             <form action="/delete" method="post">
-
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                                <button class="delete-btn">
-                                    Delete
-                                </button>
-
+                                <input type="hidden" name="init_data" value="{{ init_data }}">
+                                <button class="delete-btn">Delete</button>
                             </form>
-
                         </td>
-
                         <td>
-
                             {% if task.status %}
-
                             <form action="/undone" method="post">
-
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                                <button class="undo-btn">
-                                    Undo
-                                </button>
-
+                                <input type="hidden" name="init_data" value="{{ init_data }}">
+                                <button class="undo-btn">Undo</button>
                             </form>
-
                             {% else %}
-
                             <form action="/done" method="post">
-
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                                <button class="done-btn">
-                                    Done
-                                </button>
-
+                                <input type="hidden" name="init_data" value="{{ init_data }}">
+                                <button class="done-btn">Done</button>
                             </form>
-
                             {% endif %}
-
                         </td>
-
                         <td>
-
                             <form action="/edit" method="post">
-
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                                <button class="edit-btn">
-                                    Edit
-                                </button>
-
+                                <input type="hidden" name="init_data" value="{{ init_data }}">
+                                <button class="edit-btn">Edit</button>
                             </form>
-
                         </td>
-
                     </tr>
-
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
 
-
-
         <!-- MOBILE VERSION -->
-
         <div class="mobile-tasks">
-
             {% for task in tasks %}
-
             <details class="task-card">
-
                 <summary>
-
-                    <span class="task-name">
-                        {{ task.task }}
-                    </span>
-
+                    <span class="task-name">{{ task.task }}</span>
                     <div class="summary-right">
-
                         {% if task.status %}
                         <span class="done">✅</span>
                         {% else %}
                         <span class="not-done">❌</span>
                         {% endif %}
-
                         <span class="arrow">▶</span>
-
                     </div>
-
                 </summary>
-
                 <div class="task-info">
-
                     <p><b>ID:</b> {{ task.id }}</p>
-
                     <p><b>Description:</b> {{ task.description }}</p>
-
                     <p><b>Deadline:</b> {{ task.deadline }}</p>
-
                     <p><b>Priority:</b> {{ task.priority }}</p>
-
-                    <p>
-
-                        <b>Status:</b>
-
-                        {% if task.status %}
-                        ✅ Done
-                        {% else %}
-                        ❌ Not Done
-                        {% endif %}
-
+                    <p><b>Status:</b>
+                        {% if task.status %}✅ Done{% else %}❌ Not Done{% endif %}
                     </p>
-
                     <div class="mobile-buttons">
-
                         <form action="/delete" method="post">
-
                             <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                            <button class="delete-btn">
-                                Delete
-                            </button>
-
+                            <input type="hidden" name="init_data" value="{{ init_data }}">
+                            <button class="delete-btn">Delete</button>
                         </form>
-
-
                         {% if task.status %}
-
                         <form action="/undone" method="post">
-
                             <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                            <button class="undo-btn">
-                                Undo
-                            </button>
-
+                            <input type="hidden" name="init_data" value="{{ init_data }}">
+                            <button class="undo-btn">Undo</button>
                         </form>
-
                         {% else %}
-
                         <form action="/done" method="post">
-
                             <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                            <button class="done-btn">
-                                Done
-                            </button>
-
+                            <input type="hidden" name="init_data" value="{{ init_data }}">
+                            <button class="done-btn">Done</button>
                         </form>
-
                         {% endif %}
-
-
                         <form action="/edit" method="post">
-
                             <input type="hidden" name="task_id" value="{{ task.id }}">
-
-                            <button class="edit-btn">
-                                Edit
-                            </button>
-
+                            <input type="hidden" name="init_data" value="{{ init_data }}">
+                            <button class="edit-btn">Edit</button>
                         </form>
-
                     </div>
-
                 </div>
-
             </details>
-
             {% endfor %}
-
         </div>
-
-
 
         <hr>
 
         <div class="add-form">
-
             <h2>Add New Task</h2>
             {% if error %}
-            <div class="error-box">
-
-                {{ error }}
-
-            </div>
+            <div class="error-box">{{ error }}</div>
             {% endif %}
 
             <form action="/add" method="post">
+                <input type="hidden" name="init_data" value="{{ init_data }}">
 
                 <label for="task">Task</label>
-
                 <input id="task" type="text" name="task" minlength="3" maxlength="50" required>
 
                 <label for="description">Description</label>
-
                 <textarea id="description" name="description" maxlength="200"></textarea>
 
                 <label for="deadline">Deadline</label>
-
                 <input id="deadline" type="text" name="deadline" placeholder="2026-07-18 15:30" required>
-
-                <small>
-                    Format: YYYY-MM-DD HH:MM
-                </small>
+                <small>Format: YYYY-MM-DD HH:MM</small>
 
                 <label for="priority">Priority</label>
-
                 <select id="priority" name="priority">
-
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
                     <option value="High">High</option>
-
                 </select>
 
-                <button type="submit">
-                    Add Task
-                </button>
-
+                <button type="submit">Add Task</button>
             </form>
-
         </div>
 
     </div>
-
 
 </body>
 
